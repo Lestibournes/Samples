@@ -159,19 +159,82 @@ int checkLines(int board[SIZE], int player) {
 	return NO_MOVE;
 }
 
+/**
+ * @brief Find a location where player can play to create a fork, a situation where he has 2 options for victory in the next move.
+ * 
+ * @param board The current board.
+ * @param player The player for which we are checking.
+ * @return int The index in the board where the move can be played, or NO_MOVE (-1) if there is no possibility of a fork.
+ */
+int checkForks(int board[SIZE], int player) {
+	// For each line, check if it has exactly 1 friendly piece and no enemy pieces.
+	int options[8], count = 0, position1, position2, value, friendly, empty;
+
+	for (int line = 0; line < 8; line++) {
+		friendly = 0;
+		empty = 0;
+
+		for (int i = 0; i < HEIGHT; i++) {
+			position1 = lines[line][i];
+			value = board[position1];
+
+			if (value == player) friendly++;
+			else if (value == EMPTY) empty++;
+			else break;
+		}
+
+		if (friendly == 1 && empty == 2) {
+			options[count] = line;
+			count++;
+		}
+	}
+
+	// For every 2 lines in options, check if their intersection point is empty:
+	// The maximum number of comparisons is 8 * 7 = 56
+	for (int line1 = 0; line1 < count; line1++) {
+		for (int line2 = 0; line2 < count; line2++) {
+			for (int i = 0; i < HEIGHT; i++) {
+				for (int j = 0; j < HEIGHT; j++) {
+					position1 = lines[line1][i];
+					position2 = lines[line2][j];
+
+					value = board[position1];
+
+					if (line1 != line2 && position1 == position2 && value == EMPTY) return position1;
+				}
+			}
+		}
+	}
+
+	return NO_MOVE;
+}
+
+/**
+ * @brief Get the next move for a CPU player.
+ * 
+ * @param state The game.
+ * @return int The index in the board array where the next move should be played.
+ */
 int nextMove(struct gameState state) {
-	// Check each row, column, and diagonal if the current player can win by playing in them:
+	// Check where the current player can win in the next move:
 	int move = checkLines(state.board, currentPlayer(state));
 	printf("Winning move: %s\n", (move > NO_MOVE ? "Yes" : "No"));
 	if (move > NO_MOVE) return move;
 	
-	// Check each row, column, and diagonal if the next player can win by playing in them:
+	// Check where the current player needs to move to block the other player from winning in the next turn:
 	move = checkLines(state.board, (currentPlayer(state) + 1) % 2);
 	printf("Blocking move: %s\n", (move > NO_MOVE ? "Yes" : "No"));
 	if (move > NO_MOVE) return move;
 	
-	// Check if the current player can create a fork:
-	// Check if the next player can create a fork:
+	// Check where the current player can play to have certain victory in 2 turns:
+	move = checkForks(state.board, currentPlayer(state));
+	printf("Creating fork: %s\n", (move > NO_MOVE ? "Yes" : "No"));
+	if (move > NO_MOVE) return move;
+	
+	// Check where the current player needs to move to block the other player from certain victory in 2 turns:
+	move = checkForks(state.board, (currentPlayer(state) + 1) % 2);
+	printf("Blocking fork: %s\n", (move > NO_MOVE ? "Yes" : "No"));
+	if (move > NO_MOVE) return move;
 
 	return NO_MOVE;
 }
