@@ -218,30 +218,37 @@ int checkForks(int board[SIZE], int player) {
 int nextMove(struct gameState state) {
 	// Check where the current player can win in the next move:
 	int move = checkLines(state.board, currentPlayer(state));
-	printf("Winning move: %s\n", (move > NO_MOVE ? "Yes" : "No"));
 	if (move > NO_MOVE) return move;
 	
 	// Check where the current player needs to move to block the other player from winning in the next turn:
 	move = checkLines(state.board, (currentPlayer(state) + 1) % 2);
-	printf("Blocking move: %s\n", (move > NO_MOVE ? "Yes" : "No"));
 	if (move > NO_MOVE) return move;
 	
 	// Check where the current player can play to have certain victory in 2 turns:
 	move = checkForks(state.board, currentPlayer(state));
-	printf("Creating fork: %s\n", (move > NO_MOVE ? "Yes" : "No"));
 	if (move > NO_MOVE) return move;
 	
 	// Check where the current player needs to move to block the other player from certain victory in 2 turns:
 	move = checkForks(state.board, (currentPlayer(state) + 1) % 2);
-	printf("Blocking fork: %s\n", (move > NO_MOVE ? "Yes" : "No"));
 	if (move > NO_MOVE) return move;
 
+	// Otherwise, move to the first available spot, with priority to center, then corners, then sides:
+	// 012
+	// 345
+	// 678
+	if (state.board[4] == EMPTY) return 4;
+
+	// 0,2,4,6,8
+	for (int i = 0; i < 9; i += 2) if (state.board[i] == EMPTY) return i;
+
+	// 1,3,5,7
+	for (int i = 1; i < 9; i += 2) if (state.board[i] == EMPTY) return i;
+
+	// This should only happen when attempting to make a move in a full board:
 	return NO_MOVE;
 }
 
 void printBoard(struct gameState state) {
-	printf("\n");
-
 	for (int r = 0; r < HEIGHT; r++) {
 		for (int c = 0; c < WIDTH; c++) {
 			int value = state.board[r * WIDTH + c];
@@ -277,95 +284,32 @@ struct gameState copyBoard(struct gameState state, int board[SIZE]) {
 	return state;
 }
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]) {
 	struct gameState state = newState();
-
-	int tests[9][9] = {
-		{
-			1, EMPTY, EMPTY,
-			EMPTY, 0, EMPTY,
-			2, EMPTY, EMPTY
-		},
-		{
-			2, EMPTY, 1,
-			EMPTY, 0, EMPTY,
-			EMPTY, EMPTY, EMPTY
-		},
-		{
-			1, EMPTY, EMPTY,
-			2, 0, EMPTY,
-			EMPTY, EMPTY, EMPTY
-		},
-		{
-			1, 2, EMPTY,
-			EMPTY, 0, EMPTY,
-			EMPTY, EMPTY, EMPTY
-		},
-		{
-			EMPTY, EMPTY, EMPTY,
-			1, 0, EMPTY,
-			EMPTY, EMPTY, 2
-		},
-		{
-			EMPTY, EMPTY, EMPTY,
-			1, 0, EMPTY,
-			EMPTY, 2, 3
-		},
-		{
-			EMPTY, EMPTY, EMPTY,
-			1, 0, EMPTY,
-			3, 2, EMPTY
-		},
-		{
-			EMPTY, EMPTY, EMPTY,
-			EMPTY, EMPTY, EMPTY,
-			EMPTY, EMPTY, EMPTY
-		},
-		{
-			EMPTY, EMPTY, EMPTY,
-			EMPTY, EMPTY, EMPTY,
-			EMPTY, EMPTY, EMPTY
-		}
-	};
-
 	int winner = NO_WINNER;
 
-	for (int test = 0; test < 7; test++) {
-		printf("\n#####################\n");
-		printf("TEST %d\n", test + 1);
-		printf("#####################\n\n");
+	printf("\n");
+	
+	while (getWinner(state.board) == NO_WINNER && state.move_count < 8) {
+		state = addMove(state, nextMove(state));
 
-		state = copyBoard(state, tests[test]);
-
-		while (getWinner(state.board) == NO_WINNER && state.move_count < 8) {
-			printf("Move %d:\n", state.move_count + 2);
-			int position = nextMove(state);
-
-			if (position == NO_MOVE) {
-				for (int i = 0; i < SIZE; i++) {
-					if (state.board[i] == EMPTY) position = i;
-				}
-			}
-
-			state = addMove(state, position);
-
-			printBoard(state);
-			printf("\n\n");
-		}
-
-		switch (getWinner(state.board)) {
-		case 0:
-			printf("Winner: X\n");
-			break;
-		case 1:
-			printf("Winner: O\n");
-			break;
-		default:
-			printf("Tie Game\n");
-			break;
-		}
+		printBoard(state);
+		printf("\n\n");
 	}
+	
+	switch (getWinner(state.board)) {
+	case 0:
+		printf("Winner: X\n");
+		break;
+	case 1:
+		printf("Winner: O\n");
+		break;
+	default:
+		printf("Tie Game\n");
+		break;
+	}
+
+	printf("\n");
 
 	return 0;
 }
