@@ -1,6 +1,7 @@
 {
 	"editor.insertSpaces": false,
 	"files.associations": {
-		"stdlib.h": "c"
+		"stdlib.h": "c",
+		"common.h": "c"
 	}
 }
