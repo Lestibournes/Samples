@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import re
 import sys
 import os
@@ -23,9 +25,7 @@ for (i, arg) in enumerate(sys.argv):
 	if arg == "-s":
 		flags["simulation"] = True
 	elif arg == "--path":
-		paths.append(sys.argv[i + 1])
-	elif arg == "--paths":
-		pass # TODO support passing in an array of paths.
+		paths.append(sys.argv[i + 1]) # This allows multiple paths to be specified by passing multiple --path args with a value.
 	elif arg == "--recipe":
 		recipe = open(sys.argv[i + 1])
 		lines = recipe.readlines()
