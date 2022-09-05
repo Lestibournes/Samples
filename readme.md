@@ -7,3 +7,4 @@ This repository is for various code snippets and micro-projects. It currently co
 * tictactoeSolver - A primitive AI for tictactoe.
 * renamer - A utility for batch-renaming files based on recipes.
 * merge-videos - For mass merging of video and audio files while optionally scaling the the video. Uses ffmpeg.
+*package-installer - for easily installing flatpaks without having to manually type on the cli. Right now it's just a .desktop file that opens the installation in a terminal.
